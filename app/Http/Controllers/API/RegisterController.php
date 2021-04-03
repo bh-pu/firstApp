@@ -51,7 +51,7 @@ class RegisterController extends BaseController
     public function login(Request $request)
     {
         try {
-            if (Auth::attempt($this->credentials($request))) {
+            if (Auth::attempt([$this->username() => $request->get('email'), 'password'=>$request->get('password')])) {
                 $user = Auth::user();
                 $success['token'] = $user->createToken('MyApp')->accessToken;
                 $success['name'] = $user->first_name . ' ' . $user->last_name;
@@ -66,19 +66,20 @@ class RegisterController extends BaseController
     }
 
     /**
-     * login credentials check
-     * @param Request $request
-     * @return array
+     * Get username property.
+     *
+     * @return string
      */
-    protected function credentials(Request $request)
+    public function username()
     {
-        if(is_numeric($request->get('email'))){
-            return ['phone'=>$request->get('email'),'password'=>$request->get('password')];
+        $user_name = request()->input('email');
+        if(is_numeric($user_name)){
+            return 'phone';
         }
-        elseif (filter_var($request->get('email'), FILTER_VALIDATE_EMAIL)) {
-            return ['email' => $request->get('email'), 'password'=>$request->get('password')];
+        elseif (filter_var($user_name, FILTER_VALIDATE_EMAIL)) {
+            return 'email';
         }
-        return ['username' => $request->get('email'), 'password'=>$request->get('password')];
+        return 'username';
     }
     /**
      * Logout api
